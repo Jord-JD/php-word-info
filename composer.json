@@ -1,28 +1,36 @@
 {
-    "name": "divineomega/php-word-info",
-    "description": "PHP library to look up information about words",
-    "type": "library",
-    "require": {
-        "php": "^7.0",
-        "rapidwebltd/rw-file-cache": "^1.2",
-        "divineomega/is_offensive": "^1.0",
-        "davechild/textstatistics": "^1.0",
-        "doctrine/inflector": "^1.2"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^6.5",
-        "satooshi/php-coveralls": "^2.0"
-    },
-    "license": "LGPL-3.0-only",
-    "authors": [
-        {
-            "name": "Jordan Hall",
-            "email": "jordan@hall05.co.uk"
-        }
-    ],
-    "autoload": {
-        "psr-4": {
-            "DivineOmega\\WordInfo\\": "./src/"
-        }
+  "name": "jord-jd/php-word-info",
+  "description": "PHP library to look up information about words",
+  "type": "library",
+  "require": {
+    "php": "^7.0",
+    "rapidwebltd/rw-file-cache": "^1.2",
+    "divineomega/is_offensive": "^1.0",
+    "davechild/textstatistics": "^1.0",
+    "doctrine/inflector": "^1.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^6.5",
+    "satooshi/php-coveralls": "^2.0"
+  },
+  "license": "LGPL-3.0-only",
+  "authors": [
+    {
+      "name": "Jordan Hall",
+      "email": "jordan@hall05.co.uk"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "DivineOmega\\WordInfo\\": "./src/"
+    }
+  },
+  "replace": {
+    "divineomega/php-word-info": "self.version"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "2.0-dev"
+    }
+  }
 }
