@@ -3,15 +3,14 @@
   "description": "PHP library to look up information about words",
   "type": "library",
   "require": {
-    "php": "^7.0",
+    "php": "^7.4 || ^8.0",
     "rapidwebltd/rw-file-cache": "^1.2",
-    "divineomega/is_offensive": "^1.0",
+    "jord-jd/is_offensive": "^4.0",
     "davechild/textstatistics": "^1.0",
     "doctrine/inflector": "^1.2"
   },
   "require-dev": {
-    "phpunit/phpunit": "^6.5",
-    "satooshi/php-coveralls": "^2.0"
+    "phpunit/phpunit": "^9.6"
   },
   "license": "LGPL-3.0-only",
   "authors": [
