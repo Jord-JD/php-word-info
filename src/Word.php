@@ -44,7 +44,10 @@ class Word
     private function setupCache()
     {
         $this->cache = new RWFileCache();
-        $this->cache->changeConfig(['cacheDirectory' => '/tmp/php-word-info-cache/']);
+        // Use a cache directory name that is stable across installs but doesn't
+        // collide with historical caches that may contain serialized objects from
+        // previous namespaces.
+        $this->cache->changeConfig(['cacheDirectory' => '/tmp/jordjd-php-word-info-cache/']);
     }
 
     /**
@@ -64,32 +67,57 @@ class Word
 
         $value = $this->cache->get($cacheKey);
 
-        if ($value) {
-            return $value;
+        if ($value !== false) {
+            // New format: cached as an array of strings.
+            if (is_array($value) && (count($value) === 0 || is_string($value[0]))) {
+                return array_map(static function (string $word): self {
+                    return new self($word);
+                }, $value);
+            }
+
+            // Old format: cached as an array of Word objects. If the namespace has
+            // changed since the cache was written, unserialize() will yield
+            // __PHP_Incomplete_Class instances, so treat that cache as invalid.
+            if (is_array($value)) {
+                $allWords = true;
+                foreach ($value as $item) {
+                    if (!$item instanceof self) {
+                        $allWords = false;
+                        break;
+                    }
+                }
+                if ($allWords) {
+                    return $value;
+                }
+            }
+
+            $this->cache->delete($cacheKey);
         }
 
         $response = file_get_contents('http://rhymebrain.com/talk?function=getRhymes&word='.urlencode($this->word));
         $responseItems = json_decode($response);
 
-        $rhymes = [];
+        $rhymeWords = [];
 
         foreach ($responseItems as $responseItem) {
             if ($halfRhymes) {
                 if ($responseItem->score < 300) {
-                    $rhymes[] = new self($responseItem->word);
+                    $rhymeWords[] = $responseItem->word;
                 }
             } else {
                 if ($responseItem->score == 300) {
-                    $rhymes[] = new self($responseItem->word);
+                    $rhymeWords[] = $responseItem->word;
                 }
             }
         }
 
-        sort($rhymes);
+        sort($rhymeWords);
 
-        $this->cache->set($cacheKey, $rhymes);
+        $this->cache->set($cacheKey, $rhymeWords);
 
-        return $rhymes;
+        return array_map(static function (string $word): self {
+            return new self($word);
+        }, $rhymeWords);
     }
 
     /**
@@ -153,27 +181,50 @@ class Word
 
         $value = $this->cache->get($cacheKey);
 
-        if ($value) {
-            return $value;
+        if ($value !== false) {
+            if (is_array($value) && (count($value) === 0 || is_string($value[0]))) {
+                return array_map(static function (string $word): self {
+                    return new self($word);
+                }, $value);
+            }
+
+            if (is_array($value)) {
+                $allWords = true;
+                foreach ($value as $item) {
+                    if (!$item instanceof self) {
+                        $allWords = false;
+                        break;
+                    }
+                }
+                if ($allWords) {
+                    return $value;
+                }
+            }
+
+            $this->cache->delete($cacheKey);
         }
 
         $response = file_get_contents('http://rhymebrain.com/talk?function=getPortmanteaus&word='.urlencode($this->word));
         $responseItems = json_decode($response);
 
-        $portmanteaus = [];
+        $portmanteauWords = [];
 
         foreach ($responseItems as $responseItem) {
-            $responseItemPortmanteaus = array_map(function ($portmanteauString) {
-                return new Word($portmanteauString);
-            }, explode(',', $responseItem->combined));
-
-            $portmanteaus = array_merge($portmanteaus, $responseItemPortmanteaus);
+            foreach (explode(',', $responseItem->combined) as $portmanteauString) {
+                $portmanteauString = trim($portmanteauString);
+                if ($portmanteauString === '') {
+                    continue;
+                }
+                $portmanteauWords[] = $portmanteauString;
+            }
         }
 
-        sort($portmanteaus);
+        sort($portmanteauWords);
 
-        $this->cache->set($cacheKey, $portmanteaus);
+        $this->cache->set($cacheKey, $portmanteauWords);
 
-        return $portmanteaus;
+        return array_map(static function (string $word): self {
+            return new self($word);
+        }, $portmanteauWords);
     }
 }
