@@ -1,6 +1,6 @@
 <?php
 
-use DivineOmega\WordInfo\Word;
+use JordJD\WordInfo\Word;
 use PHPUnit\Framework\TestCase;
 
 final class WordTest extends TestCase

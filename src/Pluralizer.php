@@ -1,6 +1,6 @@
 <?php
 
-namespace DivineOmega\WordInfo;
+namespace JordJD\WordInfo;
 
 use Doctrine\Common\Inflector\Inflector;
 
