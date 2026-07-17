@@ -4,7 +4,7 @@
   "type": "library",
   "require": {
     "php": "^7.4 || ^8.0",
-    "rapidwebltd/rw-file-cache": "^1.2",
+    "jord-jd/do-file-cache": "^5.0",
     "jord-jd/is_offensive": "^5.0",
     "davechild/textstatistics": "^1.0",
     "doctrine/inflector": "^1.2"
@@ -29,7 +29,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "2.0-dev"
+      "dev-master": "2.x-dev"
     }
   }
 }
