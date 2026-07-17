@@ -3,14 +3,14 @@
 namespace JordJD\WordInfo;
 
 use DaveChild\TextStatistics\Syllables;
-use rapidweb\RWFileCache\RWFileCache;
+use JordJD\DOFileCache\DOFileCache;
 
 class Word
 {
     /** @var string|null */
     private $word;
 
-    /** @var RWFileCache|null */
+    /** @var DOFileCache|null */
     private $cache;
 
     /**
@@ -43,11 +43,13 @@ class Word
      */
     private function setupCache()
     {
-        $this->cache = new RWFileCache();
+        $this->cache = new DOFileCache();
         // Use a cache directory name that is stable across installs but doesn't
         // collide with historical caches that may contain serialized objects from
         // previous namespaces.
-        $this->cache->changeConfig(['cacheDirectory' => '/tmp/jordjd-php-word-info-cache/']);
+        $this->cache->changeConfig([
+            'cacheDirectory' => sys_get_temp_dir().DIRECTORY_SEPARATOR.'jordjd-php-word-info-cache'.DIRECTORY_SEPARATOR,
+        ]);
     }
 
     /**
@@ -94,8 +96,7 @@ class Word
             $this->cache->delete($cacheKey);
         }
 
-        $response = file_get_contents('http://rhymebrain.com/talk?function=getRhymes&word='.urlencode($this->word));
-        $responseItems = json_decode($response);
+        $responseItems = $this->requestRhymeBrain('getRhymes');
 
         $rhymeWords = [];
 
@@ -204,8 +205,7 @@ class Word
             $this->cache->delete($cacheKey);
         }
 
-        $response = file_get_contents('http://rhymebrain.com/talk?function=getPortmanteaus&word='.urlencode($this->word));
-        $responseItems = json_decode($response);
+        $responseItems = $this->requestRhymeBrain('getPortmanteaus');
 
         $portmanteauWords = [];
 
@@ -226,5 +226,28 @@ class Word
         return array_map(static function (string $word): self {
             return new self($word);
         }, $portmanteauWords);
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    private function requestRhymeBrain(string $function): array
+    {
+        $url = 'https://rhymebrain.com/talk?function='.urlencode($function).'&word='.urlencode($this->word);
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 10,
+                'ignore_errors' => true,
+            ],
+        ]);
+        $response = @file_get_contents($url, false, $context);
+
+        if ($response === false) {
+            return [];
+        }
+
+        $items = json_decode($response);
+
+        return is_array($items) ? $items : [];
     }
 }
